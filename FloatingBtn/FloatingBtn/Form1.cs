@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -50,20 +51,29 @@ namespace FloatingBtn
 
         private void button2_Click(object sender, EventArgs e)
         {
-            using (var ws = new WebSocket("ws://localhost:13812"))
+
+            int counter = 0;
+            while (counter < 2)
             {
-                ws.OnMessage += (s, e1) =>
+                using (var ws = new WebSocket("ws://localhost:13812"))
                 {
-                    Console.WriteLine("Laputa says: " + e1.Data);
+                    ws.OnMessage += (s, e1) =>
+                    {
+                        Console.WriteLine("Laputa says: " + e1.Data);
 
-                };
+                    };
 
-                ws.Connect();
-                ws.Send("{\"Status\":\"setting\",\"Mode\":\"3\"," +
-                    "\"Handwriting\":\"1\",\"Gamma\":\"4\",\"PenWidth\":" +
-                    "\"3\",\"EraserWidth\":\"10\",\"DisplayMode\":\"0\"}");
-                //Console.ReadKey(true);
+                    ws.Connect();
+                    ws.Send("{\"Status\":\"setting\",\"Mode\":\"3\"," +
+                        "\"Handwriting\":\"1\",\"Gamma\":\"4\",\"PenWidth\":" +
+                        "\"3\",\"EraserWidth\":\"10\",\"DisplayMode\":\"0\"}");
+                    //Console.ReadKey(true);
+
+                    counter++;
+                }
             }
+
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -98,12 +108,39 @@ namespace FloatingBtn
                 //Console.ReadKey(true);
             }
 
+          
+
 
         }
+        [DllImport("user32.dll", EntryPoint = "keybd_event", SetLastError = true)]
+
+        static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
+        public static extern int GetWindowThreadProcessId(
+            IntPtr hWnd, out int lpdwProcessId);
+
+        [DllImport("User32.dll")]
+
+
+        public static extern void keybd_event(Keys bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
+
+        public const int KEYEVENTF_KEYUP = 2;
 
         private void button3_Click(object sender, EventArgs e)
         {
-            Close();
+
+            Process p = Process.GetProcessesByName("OUTLOOK").FirstOrDefault();
+            if (p != null)
+            {
+                IntPtr h = p.MainWindowHandle;
+                SetForegroundWindow(h);
+                SendKeys.SendWait("^v");
+            }
+
+
+          
+
         }
     }
 }
